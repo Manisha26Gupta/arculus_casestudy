@@ -1,0 +1,25 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# SQLite DB (local only)
+*.db
+instance/
+
+# Test & coverage artifacts
+.coverage
+htmlcov/
+coverage.xml
+.pytest_cache/
+
+# IDE/editor settings
+.vscode/
+.idea/
+*.swp
+.DS_Store

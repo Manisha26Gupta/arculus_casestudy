@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ORDERS-API</title>
+  <style>
+    body { 
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; 
+      margin: 2rem; 
+      text-align: center; 
+    }
+    h1 { margin-bottom: 2rem; }
+    h2 { margin: 1.5rem 0 1rem; }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center; 
+      gap: 1.5rem;
+    }
+    form { display: flex; gap: .5rem; align-items: center; justify-content: center; }
+    input[type="number"] { padding: .5rem; width: 180px; }
+    button { padding: .5rem .9rem; cursor: pointer; }
+    table { border-collapse: collapse; width: 420px; max-width: 100%; margin-top: 1rem; }
+    th, td { padding: .6rem .8rem; border: 1px solid #ddd; text-align: center; }
+    th { background: #f7f7f7; }
+    .msg { margin-top: .5rem; min-height: 1.2em; }
+    .ok { color: #0a7f2e; }
+    .err { color: #b00020; }
+  </style>
+</head>
+<body>
+  <h1>ORDERS-API</h1>
+
+  <div class="container">
+    <div>
+      <h2>Create Order</h2>
+      <form id="createForm">
+        <label>Amount:
+          <input id="amount" type="number" step="0.01" min="0" required />
+        </label>
+        <button type="submit">Create</button>
+      </form>
+      <div id="msg" class="msg"></div>
+    </div>
+
+    <div>
+      <h2>Order History</h2>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Amount</th><th>Action</th></tr>
+        </thead>
+        <tbody id="ordersBody">
+          {% for o in orders %}
+            <tr data-id="{{ o.id }}">
+              <td>{{ o.id }}</td>
+              <td>{{ "%.2f"|format(o.amount) }}</td>
+              <td><button class="deleteBtn">Delete</button></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('createForm');
+    const amountInput = document.getElementById('amount');
+    const msg = document.getElementById('msg');
+    const tbody = document.getElementById('ordersBody');
+
+    tbody.querySelectorAll('.deleteBtn').forEach(btn => {
+      btn.addEventListener('click', handleDelete);
+    });
+
+    async function handleDelete(e) {
+      const tr = e.target.closest('tr');
+      const orderId = tr.getAttribute('data-id');
+
+      try {
+        const res = await fetch(`/orders/${orderId}`, { method: 'DELETE' });
+        const data = await res.json();
+
+        if (!res.ok) {
+          msg.textContent = data.error || 'Delete failed';
+          msg.className = 'msg err';
+          return;
+        }
+
+        tr.remove();
+        msg.textContent = `Order ${orderId} deleted`;
+        msg.className = 'msg ok';
+      } catch (err) {
+        msg.textContent = 'Network error';
+        msg.className = 'msg err';
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+      msg.className = 'msg';
+
+      const amount = amountInput.value;
+      try {
+        const res = await fetch('/orders', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ amount: Number(amount) })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          msg.textContent = data.error || 'Failed to create order';
+          msg.classList.add('err');
+          return;
+        }
+
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-id', data.id);
+        tr.innerHTML = `
+          <td>${data.id}</td>
+          <td>${Number(data.amount).toFixed(2)}</td>
+          <td><button class="deleteBtn">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+
+        tr.querySelector('.deleteBtn').addEventListener('click', handleDelete);
+
+        msg.textContent = 'Order created';
+        msg.className = 'msg ok';
+        form.reset();
+      } catch (err) {
+        msg.textContent = 'Network error';
+        msg.className = 'msg err';
+      }
+    });
+  </script>
+</body>
+</html>
