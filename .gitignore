@@ -15,7 +15,7 @@ instance/
 # Test & coverage artifacts
 .coverage
 htmlcov/
-coverage.xml
+coverage.xmlt 
 .pytest_cache/
 
 # IDE/editor settings
@@ -23,3 +23,9 @@ coverage.xml
 .idea/
 *.swp
 .DS_Store
+
+#terraform files
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl

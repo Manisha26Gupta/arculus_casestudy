@@ -1,0 +1,39 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: orders-api-rules
+  namespace: monitoring
+spec:
+  groups:
+    - name: orders-api.rules
+      rules:
+        # Alert if 5xx responses are too high
+        - alert: HighErrorRate
+          expr: rate(flask_http_request_total{status=~"5.."}[5m]) > 1
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "High 5xx Error Rate on Orders API"
+            description: "Orders API is returning >1 error/sec for 2m"
+                  # Alert if p95 latency > 1s
+        - alert: HighRequestLatency
+          expr: histogram_quantile(0.95, rate(flask_http_request_duration_seconds_bucket[5m])) > 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High Request Latency on Orders API"
+            description: "95th percentile latency > 1s over 5 minutes"
+                    # Alert if DB failures appear (500 from /orders)
+        - alert: DatabaseFailure
+          expr: rate(flask_http_request_total{endpoint="/orders", status="500"}[5m]) > 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Database failures in Orders API"
+            description: "500 errors detected on /orders endpoint (DB issue suspected)."
+
+
+        
