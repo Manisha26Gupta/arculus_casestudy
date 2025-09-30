@@ -1,0 +1,65 @@
+{
+  "id": null,
+  "title": "Orders API Dashboard",
+  "tags": ["orders-api", "flask"],
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Total Requests",
+      "targets": [
+        {
+          "expr": "sum(increase(flask_http_request_total[5m]))",
+          "legendFormat": "Requests"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Error Rate (5xx)",
+      "targets": [
+        {
+          "expr": "sum(rate(flask_http_request_total{http_status=~\"5..\"}[5m]))",
+          "legendFormat": "Errors/sec"
+        }
+      ],
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "type": "timeSeries",
+      "title": "Requests per Endpoint",
+      "targets": [
+        {
+          "expr": "sum(rate(flask_http_request_total[5m])) by (endpoint,method,http_status)",
+          "legendFormat": "{{endpoint}} {{method}} {{http_status}}"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeSeries",
+      "title": "Latency (90th percentile)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.9, sum(rate(flask_http_request_duration_seconds_bucket[5m])) by (le, endpoint))",
+          "legendFormat": "{{endpoint}}"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 }
+    },
+    {
+      "type": "stat",
+      "title": "DB Failures (/orders 500s)",
+      "targets": [
+        {
+          "expr": "sum(rate(flask_http_request_total{endpoint=\"/orders\", http_status=\"500\"}[5m]))",
+          "legendFormat": "DB Failures"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 4 }
+    }
+  ],
+  "schemaVersion": 36,
+  "version": 1
+}

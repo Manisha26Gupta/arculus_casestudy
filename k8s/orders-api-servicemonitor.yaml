@@ -4,15 +4,15 @@ metadata:
   name: orders-api
   namespace: monitoring
   labels:
-    release: prometheus   # 👈 must match your Prometheus release name
+    release: prometheus  
 spec:
   selector:
     matchLabels:
-      app: orders-api     # 👈 must match Service labels
+      app: orders-api     
   namespaceSelector:
     matchNames:
-      - default           # 👈 namespace where your Service runs
+      - default           
   endpoints:
-    - port: http          # 👈 must match the Service port name
+    - port: http          
       path: /metrics
       interval: 15s
